@@ -3,7 +3,7 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 import json
-
+Fix image display
 # ── Conexión a Google Sheets ──────────────────────────────────────────────────
 def get_sheet():
     scopes = [
