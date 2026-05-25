@@ -28,6 +28,7 @@ def get_sheet():
     return sheet
 
 # 2. Encabezado principal
+st.image("https://raw.githubusercontent.com/luigy2021-netizen/diangello-legend/main/diangello.png" , width=200)
 st.title("Di'Angello Legend")
 st.subheader("✂️ Salón de Belleza & Barbería")
 st.markdown("---")
