@@ -12,7 +12,7 @@ st.markdown("""
     footer {visibility: hidden;}
     header {visibility: hidden;}
     </style>
-"", unsafe_allowed_html=True)
+""", unsafe_allowed_html=True)
 
 # Conexión con Google Sheets usando tu lógica con gspread
 def get_sheet():
