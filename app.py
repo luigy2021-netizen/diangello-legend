@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 import gspread
 from datetime import datetime, date
@@ -10,10 +11,7 @@ def get_sheet():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
-    creds = Credentials.from_service_account_info(
-        dict(st.secrets["gcp_service_account"]),
-        scopes=scopes
-    )
+    creds = Credentials.from_service_account_info(dict(st.secrets["gcp_service_account"]), scopes=scopes)
     client = gspread.authorize(creds)
     return client.open_by_key("1N3QAuNXO0EckAOk5lb6ULmbk4nvs654dDJln-huHC1Q").sheet1
 
@@ -25,45 +23,19 @@ st.title("Di'Angello Legend ✂️")
 
 nombre = st.text_input("Nombre completo")
 whatsapp = st.text_input("WhatsApp (10 dígitos)")
-
-servicio = st.selectbox(
-    "Servicio",
-    [
-        "Corte Caballero",
-        "Corte Dama",
-        "Tinte Completo",
-        "Mechas / Highlights",
-        "Corte + Tinte Caballero"
-    ]
-)
-
+servicio = st.selectbox("Servicio", ["Corte Caballero", "Corte Dama", "Tinte Completo", "Mechas / Highlights", "Corte + Tinte Caballero"])
 fecha = st.date_input("Fecha", min_value=date.today())
-
-hora = st.selectbox(
-    "Hora",
-    [
-        "09:00 AM",
-        "10:00 AM",
-        "11:00 AM",
-        "12:00 PM",
-        "01:00 PM",
-        "03:00 PM",
-        "04:00 PM",
-        "05:00 PM",
-        "06:00 PM"
-    ]
-)
-
+hora = st.selectbox("Hora", ["09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM"])
 notas = st.text_area("Comentarios adicionales")
 
 if st.button("Agendar cita"):
     nombre = nombre.strip()
-    whatsapp = "".join(filter(str.isdigit, whatsapp))
+    whatsapp_limpio = re.sub(r"[^0-9]", "", whatsapp)
 
     if not nombre:
         st.error("Escribe tu nombre")
-    elif len(whatsapp) != 10:
-        st.error("WhatsApp debe tener 10 dígitos")
+    elif len(whatsapp_limpio) != 10:
+        st.error(f"WhatsApp debe tener 10 dígitos. Detecté {len(whatsapp_limpio)}: {whatsapp_limpio}")
     elif not dia_valido(fecha):
         st.error("Di’Angello no trabaja domingos ni lunes")
     else:
@@ -72,7 +44,7 @@ if st.button("Agendar cita"):
             sheet.append_row([
                 datetime.now().strftime("%Y%m%d%H%M%S"),
                 nombre,
-                whatsapp,
+                whatsapp_limpio,
                 servicio,
                 str(fecha),
                 hora,
