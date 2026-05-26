@@ -15,30 +15,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Conexión con Google Sheets usando tu lógica con gspread
-def get_sheet():
-    scopes = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
-
-    service_account_info = dict(st.secrets["gcp_service_account"])
-
-    # convierte \n a saltos reales
-    service_account_info["private_key"] = (
-        service_account_info["private_key"]
-        .replace("\\n", "\n")
-    )
-
-    creds = Credentials.from_service_account_info(
-        service_account_info,
-        scopes=scopes
-    )
-
-    client = gspread.authorize(creds)
-
-    sheet = client.open("Citas_DiAngello").sheet1
-
-    return sheet
+❌
+Hubo un problema al guardar tu cita. Error: Unable to load PEM file. See https://cryptography.io/en/latest/faq/#why-can-t-i-import-my-pem-file for more details. InvalidData(InvalidByte(16, 46))
 
 # 2. Encabezado principal
 st.image("https://raw.githubusercontent.com/luigy2021-netizen/diangello-legend/main/diangello.png" , width=200)
