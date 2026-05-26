@@ -21,16 +21,22 @@ def get_sheet():
         "https://www.googleapis.com/auth/drive"
     ]
 
-    creds = Credentials.from_service_account_file(
-        "credentials.json",
+    service_account_info = dict(st.secrets["gcp_service_account"])
+
+    # convierte \n a saltos reales
+    service_account_info["private_key"] = (
+        service_account_info["private_key"]
+        .replace("\\n", "\n")
+    )
+
+    creds = Credentials.from_service_account_info(
+        service_account_info,
         scopes=scopes
     )
 
     client = gspread.authorize(creds)
 
     sheet = client.open("Citas_DiAngello").sheet1
-
-    return sheet
 
     return sheet
 
