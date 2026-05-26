@@ -10,9 +10,12 @@ def get_sheet():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
-    creds = Credentials.from_service_account_info(dict(st.secrets["gcp_service_account"]), scopes=scopes)
+    creds = Credentials.from_service_account_info(
+        dict(st.secrets["gcp_service_account"]),
+        scopes=scopes
+    )
     client = gspread.authorize(creds)
-    return client.open("Citas_DiAngello").sheet1
+    return client.open_by_key("1N3QAuNXO0EckAOk5lb6ULmbk4nvs654dDJln-huHC1Q").sheet1
 
 def dia_valido(fecha):
     return fecha.weekday() not in [0, 6]
@@ -22,9 +25,35 @@ st.title("Di'Angello Legend ✂️")
 
 nombre = st.text_input("Nombre completo")
 whatsapp = st.text_input("WhatsApp (10 dígitos)")
-servicio = st.selectbox("Servicio", ["Corte Caballero", "Corte Dama", "Tinte Completo", "Mechas / Highlights", "Corte + Tinte Caballero"])
+
+servicio = st.selectbox(
+    "Servicio",
+    [
+        "Corte Caballero",
+        "Corte Dama",
+        "Tinte Completo",
+        "Mechas / Highlights",
+        "Corte + Tinte Caballero"
+    ]
+)
+
 fecha = st.date_input("Fecha", min_value=date.today())
-hora = st.selectbox("Hora", ["09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM"])
+
+hora = st.selectbox(
+    "Hora",
+    [
+        "09:00 AM",
+        "10:00 AM",
+        "11:00 AM",
+        "12:00 PM",
+        "01:00 PM",
+        "03:00 PM",
+        "04:00 PM",
+        "05:00 PM",
+        "06:00 PM"
+    ]
+)
+
 notas = st.text_area("Comentarios adicionales")
 
 if st.button("Agendar cita"):
