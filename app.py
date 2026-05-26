@@ -1,39 +1,66 @@
-import streamlit as st
-from datetime import datetime
+import os
+from datetime import date, datetime
+
 import gspread
+import streamlit as st
 from google.oauth2.service_account import Credentials
 
 # 1. Configuración de la página e interfaz limpia
-st.set_page_config(page_title="Di'Angello Legend", page_icon="✂️", layout="centered")
+st.set_page_config(
+    page_title="Di'Angello Legend",
+    page_icon="✂️",
+    layout="centered"
+)
 
-st.markdown("""
+st.markdown(
+    """
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
-# Conexión con Google Sheets usando tu lógica con gspread
-❌
-Hubo un problema al guardar tu cita. Error: Unable to load PEM file. See https://cryptography.io/en/latest/faq/#why-can-t-i-import-my-pem-file for more details. InvalidData(InvalidByte(16, 46))
+# 2. Conexión con Google Sheets
+def get_sheet():
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
 
-# 2. Encabezado principal
-st.image("https://raw.githubusercontent.com/luigy2021-netizen/diangello-legend/main/diangello.png" , width=200)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    cred_path = os.path.join(base_dir, "credentials.json")
+
+    creds = Credentials.from_service_account_file(
+        cred_path,
+        scopes=scopes
+    )
+
+    client = gspread.authorize(creds)
+    sheet = client.open("Citas_DiAngello").sheet1
+    return sheet
+
+# 3. Encabezado principal
+st.image(
+    "https://raw.githubusercontent.com/luigy2021-netizen/diangello-legend/main/diangello.png",
+    width=200
+)
 st.title("Di'Angello Legend")
 st.subheader("✂️ Salón de Belleza & Barbería")
 st.markdown("---")
 
-# 3. Diccionario con tus servicios y precios reales fijos
+# 4. Diccionario con tus servicios y precios
 SERVICIOS = {
     "Corte Caballero": 250,
-    "Corte Dama": 350,       
+    "Corte Dama": 350,
     "Tinte Completo": 600,
     "Mechas / Highlights": 800,
     "Corte + Tinte Caballero": 450
 }
 
-# 4. Mostrar la lista de precios de manera elegante
+# 5. Mostrar servicios
 st.markdown("### 📋 Nuestros Servicios y Precios")
 cols = st.columns(2)
 for i, (servicio, precio) in enumerate(SERVICIOS.items()):
@@ -42,79 +69,75 @@ for i, (servicio, precio) in enumerate(SERVICIOS.items()):
 
 st.markdown("---")
 
-# 5. Formulario de Citas
+# 6. Formulario de citas
 st.markdown("### 📅 Agenda tu cita")
 
 with st.form("formulario_cita", clear_on_submit=True):
     nombre = st.text_input("Tu nombre completo:")
-    whatsapp = st.text_input("Tu WhatsApp (a 10 dígitos):", max_chars=10)
+    whatsapp = st.text_input("Tu WhatsApp (a 10 dígitos):", max_chars=20)
     servicio_seleccionado = st.selectbox("Selecciona el servicio:", list(SERVICIOS.keys()))
-    fecha = st.date_input("Fecha de tu cita:", min_value=datetime.today())
-    
-    horas_disponibles = ["09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", 
-                         "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"]
+    fecha = st.date_input("Fecha de tu cita:", min_value=date.today())
+
+    horas_disponibles = [
+        "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM",
+        "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"
+    ]
     hora = st.selectbox("Hora de tu cita:", horas_disponibles)
     notas = st.text_area("Notas adicionales (opcional):")
-    
+
     boton_agendar = st.form_submit_button("Agendar Cita")
 
+# 7. Lógica de registro
 if boton_agendar:
-
     nombre = nombre.strip()
-    whatsapp = whatsapp.strip()
-
-    # dejar solo números
-    whatsapp = "".join(filter(str.isdigit, whatsapp))
+    whatsapp = "".join(filter(str.isdigit, whatsapp.strip()))
 
     if not nombre:
         st.error("⚠️ Escribe tu nombre completo.")
-
-    elif not whatsapp.isdigit():
-        st.error("⚠️ El WhatsApp debe contener solo números.")
-
     elif len(whatsapp) != 10:
         st.error("⚠️ El WhatsApp debe tener exactamente 10 dígitos.")
-
     else:
         try:
             precio_final = SERVICIOS[servicio_seleccionado]
-            
-            # Conectar a la base de datos de Google Sheets
             sheet = get_sheet()
-            
-            # Generar un ID único basado en el tiempo actual para identificar la cita
+
             id_cita = datetime.now().strftime("%Y%m%d%H%M%S")
-            
-            # Creamos la fila exactamente en el orden de las columnas de tu Sheets:
-            # ID_Cita | Cliente | WhatsApp | Servicio | Precio | Fecha | Hora | Estado | Calificacion | Notas
+
             nueva_fila = [
-                id_cita, 
-                nombre, 
-                whatsapp, 
-                servicio_seleccionado, 
-                precio_final, 
-                str(fecha), 
-                hora, 
-                "Pendiente", 
-                "", 
+                id_cita,
+                nombre,
+                whatsapp,
+                servicio_seleccionado,
+                precio_final,
+                str(fecha),
+                hora,
+                "Pendiente",
+                "",
                 notas
             ]
-            
-            # Insertar los datos en la hoja de cálculo
+
             sheet.append_row(nueva_fila)
-            
-            st.success(f"¡Gracias {nombre}! Tu cita para **{servicio_seleccionado}** (${precio_final} MXN) el día {fecha} a las {hora} ha sido agendada con éxito.")
-            
-            # --- Sistema de Confirmación por WhatsApp ---
-            # Creamos el texto del mensaje para el negocio o el cliente
-            mensaje_wa = f"¡Hola! Confirmación de cita en Di'Angello Legend:\n\n👤 Cliente: {nombre}\n✂️ Servicio: {servicio_seleccionado}\n💵 Precio: ${precio_final} MXN\n📅 Fecha: {fecha}\n⏰ Hora: {hora}"
-            # Codificamos el texto para que sea válido en un enlace web
+
+            st.success(
+                f"¡Gracias {nombre}! Tu cita para **{servicio_seleccionado}** "
+                f"(${precio_final} MXN) el día {fecha} a las {hora} ha sido agendada con éxito."
+            )
+
+            mensaje_wa = (
+                f"¡Hola! Confirmación de cita en Di'Angello Legend:\n\n"
+                f"👤 Cliente: {nombre}\n"
+                f"✂️ Servicio: {servicio_seleccionado}\n"
+                f"💵 Precio: ${precio_final} MXN\n"
+                f"📅 Fecha: {fecha}\n"
+                f"⏰ Hora: {hora}"
+            )
             mensaje_codificado = mensaje_wa.replace(" ", "%20").replace("\n", "%0A")
-            
-            # Creamos un botón interactivo para abrir WhatsApp
             url_whatsapp = f"https://wa.me/52{whatsapp}?text={mensaje_codificado}"
-            st.markdown(f"[💬 Haz clic aquí para enviar la confirmación por WhatsApp]({url_whatsapp})")
-            
+
+            st.markdown(
+                f"[💬 Haz clic aquí para enviar la confirmación por WhatsApp]({url_whatsapp})"
+            )
+
         except Exception as e:
             st.error(f"❌ Hubo un problema al guardar tu cita. Error: {e}")
 
